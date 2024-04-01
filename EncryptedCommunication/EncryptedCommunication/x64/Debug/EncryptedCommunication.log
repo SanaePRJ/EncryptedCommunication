@@ -1,0 +1,12 @@
+﻿  EncryptedCommunication.cpp
+C:\Users\usagi\Desktop\EncryptedCommunication\EncryptedCommunication\EncryptedCommunication\EncryptedCommunication.hpp(154,19): warning C4267: '=': 'size_t' から '_Ty' に変換しました。データが失われているかもしれません。
+          with
+          [
+              _Ty=char
+          ]
+C:\Users\usagi\Desktop\EncryptedCommunication\EncryptedCommunication\EncryptedCommunication\EncryptedCommunication.cpp(77,48): message : コンパイル対象の関数 テンプレート インスタンス化 'std::vector<std::pair<char,char>,std::allocator<std::pair<char,char>>> SSC::MakeDic<std::mt19937>(char,char,Engine)' のリファレンスを確認してください
+          with
+          [
+              Engine=std::mt19937
+          ]
+  EncryptedCommunication.vcxproj -> C:\Users\usagi\Desktop\EncryptedCommunication\EncryptedCommunication\x64\Debug\EncryptedCommunication.exe
