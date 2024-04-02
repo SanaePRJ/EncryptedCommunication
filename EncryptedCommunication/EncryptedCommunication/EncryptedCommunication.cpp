@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include <vector>
 #include <random>
+#include <math.h>
 #include <iomanip>
 #include "EncryptedCommunication.hpp"
 
@@ -14,10 +15,12 @@ void SSC_Test();
 
 
 
+
+
 int main() {
-	Caesar_Test();
-	OneTimePad_Test();
-	SSC_Test();
+	uint64_t ret = DES::FeistelNetwork<2>((uint64_t)0x123456789ABCDEF0);
+
+	std::cout << std::hex << DES::FeistelNetwork<2>(ret);
 }
 
 

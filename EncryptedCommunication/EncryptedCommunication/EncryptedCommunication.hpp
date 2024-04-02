@@ -14,6 +14,16 @@
 
 
 
+template<size_t Count>
+uint64_t pow(uint64_t arg) {
+	return arg * pow<Count - 1>(arg);
+}
+template<>
+uint64_t pow<0>(uint64_t arg) {
+	return 1;
+}
+
+
 namespace Caesar 
 {
 	//CaesarˆÃ†
@@ -166,6 +176,34 @@ namespace SSC {
 
 		return ret;
 	}
+}
+
+
+
+
+/*----------DESˆÃ†----------*/
+namespace DES {
+	
+	//left‚Æright‚É•ª‚¯‚éB
+	std::pair<uint32_t, uint32_t> split(uint64_t value) {
+		return { static_cast<uint32_t>(value >> 32),static_cast<uint32_t>(value) };
+	}
+
+	uint32_t DefaultRoundFunc(uint32_t value,uint32_t subkey) {
+		return ~(value ^ subkey) ^ (value & subkey);
+	}
+
+	template<uint32_t SubKey>
+	uint64_t FeistelNetwork(uint64_t In, std::function<uint32_t(uint32_t, uint32_t)> RoundFunc = DefaultRoundFunc)
+	{
+		//\‘¢‰»‘©”›
+		auto [left, right] = split(In);
+
+		left ^= RoundFunc(right,SubKey);
+
+		return (static_cast<uint64_t>(left) << 32) | right;
+	}
+
 }
 
 
