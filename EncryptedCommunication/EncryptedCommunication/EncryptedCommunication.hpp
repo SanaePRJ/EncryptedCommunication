@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <random>
 #include <algorithm>
+#include <bitset>
 
 
 
@@ -189,19 +190,93 @@ namespace DES {
 		return { static_cast<uint32_t>(value >> 32),static_cast<uint32_t>(value) };
 	}
 
-	uint32_t DefaultRoundFunc(uint32_t value,uint32_t subkey) {
-		return ~(value ^ subkey) ^ (value & subkey);
+	uint32_t DefaultRoundFunc(uint32_t value,std::bitset<48> subkey) {
+		std::bitset<48> value_bit = value;
+		
+		//subkeyとのxorをとる。
+		value_bit ^= subkey;
+		
+		//32bitへ成形
+		std::string value_bit_string = value_bit.to_string();
+		value_bit_string.erase(value_bit_string.begin(),value_bit_string.begin()+16);
+
+		return std::bitset<32>(value_bit_string).to_ulong();
 	}
 
-	template<uint32_t SubKey>
-	uint64_t FeistelNetwork(uint64_t In, std::function<uint32_t(uint32_t, uint32_t)> RoundFunc = DefaultRoundFunc)
+	//SubKeyは48bitにすること!
+	template<uint64_t SubKey>
+	uint64_t FeistelNode(uint64_t In, std::function<uint32_t(uint32_t, uint32_t)> RoundFunc = DefaultRoundFunc)
 	{
 		//構造化束縛
 		auto [left, right] = split(In);
 
-		left ^= RoundFunc(right,SubKey);
+		left ^= RoundFunc(right,std::bitset<48>(SubKey));
 
 		return (static_cast<uint64_t>(left) << 32) | right;
+	}
+
+	//parityをチェックする。
+	bool CheckParityBit(uint64_t Data,bool EvenNumParity = true) 
+	{
+		//1の数を取得
+		const size_t SetCount = std::bitset<64>(Data).count();
+
+		//異常な時falseを返す。
+		return EvenNumParity?(SetCount%2==0):(SetCount%2==1);
+	}
+
+	//ReducedTransposition(縮小転置) Parityチェック,Parity削除
+	std::bitset<56> RTP(uint64_t Data) 
+	{
+		//parityが異常な時throw
+		if (!CheckParityBit(Data))
+			throw std::runtime_error("Parity Error!");
+
+		//parityを削除
+		std::string DataBit = std::bitset<64>(Data).to_string();
+		for (size_t DelPos = 7; DelPos < 64; DelPos += 8)
+			DataBit.erase(DelPos);
+		
+		//再配置
+		std::shuffle(DataBit.begin(),DataBit.end(),std::mt19937(255));
+
+		return std::bitset<56>(DataBit);
+	}
+
+
+	//巡回左ビットシフト
+	template<size_t C>
+	std::bitset<C> CShiftL(std::bitset<C>& Arg,size_t Count)
+	{
+		return (Arg << Count) | (Arg >> (C-Count));
+	}
+	//巡回右ビットシフト
+	template<size_t C>
+	std::bitset<C> CShiftR(std::bitset<C>& Arg,size_t Count) 
+	{
+		return (Arg >> Count) | (Arg << (C-Count));
+	}
+
+
+	//SubKey生成
+	template<size_t Count>
+	std::vector<std::bitset<48>> MakeSubKey(uint64_t Key) 
+	{
+		std::vector<std::bitset<48>> ret;
+
+		std::bitset<56> buf = RTP(Key);
+
+		for (size_t i = 0; i < Count;i++) {
+			std::bitset<28> left = buf >> 28,right = (std::bitset<28>)buf;
+			left  = CShiftL(left,2);
+			right = CShiftR(right,2);
+
+			buf = ((std::bitset<56>)left << 28) | (std::bitset<56>)right;
+
+			ret.push_back(std::bitset<48>(buf));
+		}
+		
+		return ret;
 	}
 
 }

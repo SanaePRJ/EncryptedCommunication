@@ -18,9 +18,8 @@ void SSC_Test();
 
 
 int main() {
-	uint64_t ret = DES::FeistelNetwork<2>((uint64_t)0x123456789ABCDEF0);
-
-	std::cout << std::hex << DES::FeistelNetwork<2>(ret);
+	std::bitset<5> d = 0b01101;
+	std::cout << DES::CShiftR(d, 1).to_string();
 }
 
 
